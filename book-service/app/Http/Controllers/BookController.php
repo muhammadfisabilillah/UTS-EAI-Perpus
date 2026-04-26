@@ -33,9 +33,18 @@ class BookController extends Controller
     }
 
     // Display book by ID
-    public function show(Book $book)
+    public function show($id)
     {
-        return response()->json($book, Response::HTTP_OK);
+        $book = Book::find($id);
+
+        if (!$book) {
+            return response()->json([
+                'error' => 'Resource Not Found',
+                'message' => "Book with ID #{$id} does not exist in the library."
+            ], 404);
+        }
+
+        return response()->json($book, 200);
     }
 
     // Update a book
