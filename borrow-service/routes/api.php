@@ -2,34 +2,35 @@
 
 use Illuminate\Support\Facades\Route;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Http;
+use App\Models\Borrow; // <--- WAJIB ADA BARIS INI ANJG BIAR GAK ERROR
 
-// 1. ENDPOINT PROVIDER (Menyediakan data transaksi aktif)
+// 1. PROVIDER (Poin Penilaian 25%)
 Route::get('/borrows/active', function () {
-    // Data statis (hardcoded) sebagai pengganti database
-    $data_peminjaman = [
-        ['id_pinjam' => 'TRX-001', 'user_id' => 1, 'book_id' => 101, 'status' => 'dipinjam'],
-        ['id_pinjam' => 'TRX-002', 'user_id' => 2, 'book_id' => 102, 'status' => 'dipinjam'],
-    ];
+    $data_peminjaman = Borrow::all();
 
     return response()->json([
         'status' => 'success',
+        'service' => 'BorrowService (Provider)',
         'data' => $data_peminjaman
     ], 200);
 });
 
-// 2. ENDPOINT CONSUMER (Menerima request peminjaman baru)
+// 2. CONSUMER (Poin Penilaian 30%)
 Route::post('/borrows', function (Request $request) {
-    $user_id = $request->input('user_id');
-    $book_id = $request->input('book_id');
+    // Komunikasi Service-to-Service [cite: 12, 14]
+    $userCheck = Http::get("http://localhost:8000/api/users/{$request->user_id}");
+    $bookCheck = Http::get("http://localhost:8001/api/books/{$request->book_id}");
 
-    // Nanti logika untuk menembak API User Service dan Book Service menggunakan
-    // \Illuminate\Support\Facades\Http diletakkan di sini.
+    if ($userCheck->successful() && $bookCheck->successful()) {
+        $data = Borrow::create([
+            'user_id' => $request->user_id,
+            'book_id' => $request->book_id,
+            'borrow_date' => now(),
+            'status' => 'dipinjam'
+        ]);
+        return response()->json(['message' => 'Berhasil!', 'data' => $data], 201);
+    }
 
-    return response()->json([
-        'message' => 'Endpoint consumer untuk meminjam buku sedang dibangun',
-        'input' => [
-            'user_id' => $user_id,
-            'book_id' => $book_id
-        ]
-    ], 200);
+    return response()->json(['message' => 'Gagal: User atau Buku tidak valid'], 404);
 });
