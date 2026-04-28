@@ -1,68 +1,76 @@
-<!DOCTYPE html>
-<html lang="id">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard EAI Perpustakaan</title>
-    <style>
-        body { font-family: sans-serif; padding: 20px; background-color: #f9f9f9; }
-        .container { max-width: 800px; margin: auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
-        th { background-color: #007bff; color: white; }
-        .btn { padding: 5px 10px; background-color: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer; }
-        .btn:disabled { background-color: #ccc; cursor: not-allowed; }
-    </style>
-</head>
-<body>
+@extends('layouts.app')
 
-<div class="container">
-    <h2>📚 Dashboard Admin Perpustakaan</h2>
-    <p>Data di bawah ini nantinya akan ditarik dari <b>Book Service</b>.</p>
+@section('title', 'Katalog Buku')
+
+@section('content')
 
     @if(session('success'))
-        <div style="padding: 15px; background-color: #d4edda; color: #155724; border-radius: 5px; margin-bottom: 20px;">
+        <div class="alert-success">
             {{ session('success') }}
         </div>
     @endif
+    
+    @if(session('error'))
+        <div class="alert-error">
+            {{ session('error') }}
+        </div>
+    @endif
 
-    <table>
+    <div class="card">
+        <div class="card-header">
+            <h3>Daftar Katalog Buku</h3>
+            <p style="color: #64748b; font-size: 0.9rem; margin-top: 5px;">Data ini ditarik langsung dari <b>Book Service (Port 8001)</b>.</p>
+        </div>
+
+            <table>
         <thead>
             <tr>
                 <th>ID</th>
                 <th>Judul Buku</th>
                 <th>Penulis</th>
-                <th>Stok</th>
-                <th>Aksi</th>
+                <th>Status</th> {{-- Kolom ke-4 --}}
+                <th>Aksi Peminjaman</th> {{-- Kolom ke-5 --}}
             </tr>
         </thead>
         <tbody>
             @foreach($books as $book)
             <tr>
-                <td>{{ $book['id'] }}</td>
-                <td>{{ $book['title'] }}</td>
-                <td>{{ $book['author'] }}</td>
+                <td>{{ $book['id'] }}</td> {{-- Kolom 1 --}}
+                <td><b>{{ $book['title'] }}</b></td> {{-- Kolom 2 --}}
+                <td>{{ $book['author'] }}</td> {{-- Kolom 3 --}}
+                
+                {{-- Kolom 4: Isi Status --}}
                 <td>
-                    @if($book['stock'] > 0)
-                        <span style="color: green; font-weight: bold;">Tersedia ({{ $book['stock'] }})</span>
+                    @if($book['is_available'] > 0)
+                        <span style="color: green; font-weight: bold;">Tersedia ({{ $book['is_available'] }})</span>
                     @else
-                        <span style="color: red; font-weight: bold;">Habis</span>
+                        <span style="color: red; font-weight: bold;">Kosong</span>
                     @endif
                 </td>
-                
+
+                {{-- Kolom 5: Isi Aksi (Form Pinjam) --}}
                 <td>
-                    <form action="{{ route('book.borrow', $book['id']) }}" method="POST">
+                    <form action="{{ route('book.borrow', $book['id']) }}" method="POST" style="display: flex; gap: 10px; align-items: center;">
                         @csrf
-                        <button class="btn" {{ $book['stock'] == 0 ? 'disabled' : '' }}>
+                        
+                        @if(isset($users) && count($users) > 0)
+                            <select name="user_id" required {{ $book['is_available'] <= 0 ? 'disabled' : '' }} style="padding: 6px; border-radius: 4px; border: 1px solid #cbd5e1;">
+                                <option value="">-- Pilih Peminjam --</option>
+                                @foreach($users as $user)
+                                    <option value="{{ $user['id'] }}">{{ $user['nama'] ?? $user['name'] }}</option>
+                                @endforeach
+                            </select>
+                        @endif
+
+                        <button type="submit" class="btn btn-success" {{ $book['is_available'] <= 0 ? 'disabled' : '' }}>
                             Pinjam
                         </button>
                     </form>
                 </td>
-                </tr>
+            </tr>
             @endforeach
         </tbody>
     </table>
-</div>
+    </div>
 
-</body>
-</html>
+@endsection

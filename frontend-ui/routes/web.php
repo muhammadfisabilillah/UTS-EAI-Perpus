@@ -3,8 +3,14 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\DashboardController;
 
-// Halaman utama SEKARANG SUDAH DIBERI NAMA 'dashboard'
+// Halaman Katalog Buku (Utama)
 Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
 
-// Aksi meminjam
+// Halaman Data Anggota
+Route::get('/anggota', [DashboardController::class, 'anggota'])->name('anggota');
+
+// Halaman Riwayat Transaksi
+Route::get('/transaksi', [DashboardController::class, 'transaksi'])->name('transaksi');
+
+// Aksi proses peminjaman (POST)
 Route::post('/pinjam/{id}', [DashboardController::class, 'store'])->name('book.borrow');
