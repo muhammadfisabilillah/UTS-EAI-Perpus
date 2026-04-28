@@ -11,11 +11,10 @@ class BorrowController extends Controller
     // Ini fungsi untuk mencatat peminjaman (Consumer side)
     public function store(Request $request)
     {
-        // Ambil data user dari UserService (Teman A) - port 8000
-        $userResponse = Http::get("http://localhost:8000/api/users/{$request->user_id}");
-
         // Ambil data buku dari BookService (Teman B) - port 8001
         $bookResponse = Http::get("http://localhost:8001/api/books/{$request->book_id}");
+        // Ambil data user dari UserService (Teman A) - port 8002
+        $userResponse = Http::get("http://localhost:8002/api/users/{$request->user_id}");
 
         // Jika user dan buku ditemukan di service mereka
         if ($userResponse->successful() && $bookResponse->successful()) {
