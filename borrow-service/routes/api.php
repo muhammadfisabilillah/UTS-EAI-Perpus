@@ -46,6 +46,11 @@ Route::post('/borrows', function (Request $request) {
             'due_date' => now()->addDays(7), // Otomatis pinjam 7 hari
             'status' => '1' // Status 1 = Dipinjam
         ]);
+        
+        // Update status buku di Book Service menjadi 0 (tidak tersedia)
+        Http::put("http://127.0.0.1:8001/api/books/{$request->book_id}", [
+            'is_available' => 0
+        ]);
 
         // Mengembalikan respon sukses agar muncul di Postman
         return response()->json([
