@@ -11,7 +11,6 @@ use App\Models\Borrow;
 |--------------------------------------------------------------------------
 */
 
-// 1. Jalur untuk melihat semua data peminjaman (GET)
 Route::get('/borrows/active', function () {
     $borrows = Borrow::all();
     return response()->json([
@@ -21,7 +20,6 @@ Route::get('/borrows/active', function () {
     ], 200);
 });
 
-// 2. Jalur untuk menyimpan peminjaman baru (POST)
 Route::post('/borrows', function (Request $request) {
 
     // Validasi input dari Postman
@@ -70,3 +68,15 @@ Route::post('/borrows', function (Request $request) {
         ]
     ], 400);
 });
+
+Route::put('/borrows/{id}', function (Request $request, $id) {
+        $borrow = Borrow::findOrFail($id);
+        
+        // Pastikan ini mengambil data dari request
+        $borrow->update([
+            'status' => $request->status,       // Akan menerima 'inactive'
+            'return_date' => $request->return_date // Akan menerima tanggal hari ini
+        ]);
+
+        return response()->json($borrow);
+    });

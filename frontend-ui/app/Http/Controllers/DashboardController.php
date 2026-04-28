@@ -102,4 +102,24 @@ class DashboardController extends Controller
             return redirect()->route('dashboard')->with('error', 'Borrow Service sedang tidak aktif!');
         }
     }
+
+    public function returnBook(Request $request, $id)
+    {
+        // 1. Update Borrow Service (Status & Tanggal Kembali)
+        $borrowRes = Http::put("http://127.0.0.1:8003/api/borrows/{$id}", [
+            'status' => 'returned',
+            'return_date' => now()->toDateString() // Mengirim tanggal hari ini (YYYY-MM-DD)
+        ]);
+
+        // 2. Update Book Service (Available: 1)
+        $bookRes = Http::put("http://127.0.0.1:8001/api/books/{$request->book_id}", [
+            'is_available' => 1
+        ]);
+
+        if ($borrowRes->successful() && $bookRes->successful()) {
+            return redirect()->back()->with('success', 'Buku dikembalikan & status returned!');
+        }
+
+        return redirect()->back()->with('error', 'Gagal update data.');
+    }
 }
