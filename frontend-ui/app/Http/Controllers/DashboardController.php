@@ -91,11 +91,13 @@ class DashboardController extends Controller
             ]);
 
             if ($response->successful()) {
-                return redirect()->route('dashboard')->with('success', 'Peminjaman berhasil diproses oleh sistem!');
+                return redirect()->route('dashboard')->with('success', 'Peminjaman berhasil!');
             } else {
-                return redirect()->route('dashboard')->with('error', 'Gagal meminjam: ' . $response->body());
+                // DON'T use $response->body() here if it might return a full HTML page
+                // Just use a short message or the status code
+                $errorMessage = "Server Error (Status: " . $response->status() . ")";
+                return redirect()->route('dashboard')->with('error', 'Gagal meminjam: ' . $errorMessage);
             }
-
         } catch (\Exception $e) {
             return redirect()->route('dashboard')->with('error', 'Borrow Service sedang tidak aktif!');
         }
