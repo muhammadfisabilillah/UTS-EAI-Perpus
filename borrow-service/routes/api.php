@@ -3,9 +3,8 @@
 use Illuminate\Support\Facades\Route;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
-use App\Models\Borrow; // <--- WAJIB ADA BARIS INI ANJG BIAR GAK ERROR
+use App\Models\Borrow;
 
-// 1. PROVIDER (Poin Penilaian 25%)
 Route::get('/borrows/active', function () {
     $data_peminjaman = Borrow::all();
 
@@ -16,11 +15,9 @@ Route::get('/borrows/active', function () {
     ], 200);
 });
 
-// 2. CONSUMER (Poin Penilaian 30%)
 Route::post('/borrows', function (Request $request) {
-    // Komunikasi Service-to-Service [cite: 12, 14]
-    $userCheck = Http::get("http://localhost:8000/api/users/{$request->user_id}");
-    $bookCheck = Http::get("http://localhost:8001/api/books/{$request->book_id}");
+    $bookCheck = Http::get("http://127.0.0.1:8001/api/books/{$request->book_id}");
+    $userCheck = Http::get("http://127.0.0.1:8002/api/users/{$request->user_id}");
 
     if ($userCheck->successful() && $bookCheck->successful()) {
         $data = Borrow::create([
