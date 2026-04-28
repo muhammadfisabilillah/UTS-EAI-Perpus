@@ -3,46 +3,101 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Http; // Wajib ada untuk nembak API
 
 class DashboardController extends Controller
 {
+    /**
+     * Halaman Utama: Menampilkan Buku (dari Book Service) 
+     * & Dropdown User (dari User Service)
+     */
     public function index()
     {
-        // 1. Cek apakah memori browser (session) sudah punya data buku?
-        // Kalau belum ada, kita buat data awal dan simpan ke memory.
-        if (!session()->has('mock_books')) {
-            $initialBooks = [
-                ['id' => 1, 'title' => 'Sistem Informasi Manajemen', 'author' => 'Budi Santoso', 'stock' => 5],
-                ['id' => 2, 'title' => 'Belajar Laravel 11', 'author' => 'Eko Kurniawan', 'stock' => 2],
-                ['id' => 3, 'title' => 'Desain UI/UX Praktis', 'author' => 'Sena', 'stock' => 0],
-            ];
-            session(['mock_books' => $initialBooks]);
-        }
+        // Ambil data buku
+        $responseBooks = Http::get('http://127.0.0.1:8001/api/books');
+        $books = $responseBooks->json();
 
-        // 2. Ambil data dari memory browser untuk ditampilkan
-        $books = session('mock_books');
+        // Ambil data user
+        $responseUsers = Http::get('http://127.0.0.1:8002/api/users');
+        
+        // Pastikan kita ambil 'data'-nya saja jika API temanmu membungkusnya dalam folder 'data'
+        $userData = $responseUsers->json();
+        
+        // TRICK: Kita pastikan $users adalah array yang benar
+        $users = is_array($userData) && isset($userData['data']) ? $userData['data'] : $userData;
 
-        return view('dashboard', ['books' => $books]);
+        return view('dashboard', compact('books', 'users'));
     }
 
-    public function store(Request $request, $id)
+    /**
+     * Halaman Anggota: Menampilkan Data User (dari User Service)
+     */
+    public function anggota()
     {
-        // 1. Tarik data buku dari memory browser
-        $books = session('mock_books');
+        try {
+            // Ambil data dari User Service (8002) lewat jalur GET /users
+            $response = Http::get('http://127.0.0.1:8002/api/users');
 
-        // 2. Cari buku mana yang di-klik berdasarkan ID, lalu kurangi stoknya 1
-        foreach ($books as $key => $book) {
-            if ($book['id'] == $id && $book['stock'] > 0) {
-                $books[$key]['stock'] -= 1; // Logika pengurangan stok
-                break;
+            if ($response->successful()) {
+                $userData = $response->json();
+                
+                // Cek: Jika data dibungkus dalam key 'data' (karena biasanya pakai pagination/resource)
+                // Kalau isinya langsung list, dia akan ambil $userData langsung
+                $users = isset($userData['data']) ? $userData['data'] : $userData;
+            } else {
+                $users = [];
             }
+        } catch (\Exception $e) {
+            $users = [];
         }
 
-        // 3. Simpan kembali data yang stoknya sudah berkurang ke memory browser
-        session(['mock_books' => $books]);
+        return view('anggota', compact('users'));
+    }
 
-        // 4. Kembalikan user ke halaman depan dengan pesan sukses
-        return redirect()->route('dashboard')->with('success', 'Berhasil! Buku ID ' . $id . ' dipinjam. Stok berkurang 1 (Simulasi).');
+    // --- KODINGAN LAMA (HAPUS/GANTI BAGIAN INI) ---
+    public function transaksi()
+    {
+        try {
+            $response = Http::get('http://127.0.0.1:8003/api/borrows/active');
+
+            if ($response->successful()) {
+                $transactions = $response->json()['data'];
+            } else {
+                $transactions = [];
+            }
+        } catch (\Exception $e) {
+            $transactions = [];
+        }
+
+        return view('transaksi', ['transactions' => $transactions]);
+    }
+
+
+    /**
+     * Aksi Meminjam: UI mengirim perintah ke Borrow Service (Orkestrator)
+     */
+    public function store(Request $request, $id)
+    {
+        $request->validate([
+            'user_id' => 'required'
+        ]);
+
+        try {
+            // UI menyerahkan urusan peminjaman sepenuhnya ke Borrow Service (Port 8003)
+            // Borrow Service-lah yang nanti akan mengecek User Service dan memotong stok di Book Service
+            $response = Http::post('http://127.0.0.1:8003/api/borrows', [
+                'user_id' => $request->user_id,
+                'book_id' => $id
+            ]);
+
+            if ($response->successful()) {
+                return redirect()->route('dashboard')->with('success', 'Peminjaman berhasil diproses oleh sistem!');
+            } else {
+                return redirect()->route('dashboard')->with('error', 'Gagal meminjam: ' . $response->body());
+            }
+
+        } catch (\Exception $e) {
+            return redirect()->route('dashboard')->with('error', 'Borrow Service sedang tidak aktif!');
+        }
     }
 }
