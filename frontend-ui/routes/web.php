@@ -14,3 +14,7 @@ Route::get('/transaksi', [DashboardController::class, 'transaksi'])->name('trans
 
 // Aksi proses peminjaman (POST)
 Route::post('/pinjam/{id}', [DashboardController::class, 'store'])->name('book.borrow');
+
+// Jalur untuk aksi pengembalian buku
+Route::put('/transaksi/{id}/return', [App\Http\Controllers\DashboardController::class, 'returnBook'])->name('transaksi.return');
+

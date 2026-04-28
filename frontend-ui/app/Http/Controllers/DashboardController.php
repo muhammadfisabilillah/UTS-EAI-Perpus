@@ -100,4 +100,19 @@ class DashboardController extends Controller
             return redirect()->route('dashboard')->with('error', 'Borrow Service sedang tidak aktif!');
         }
     }
+
+   public function returnBook($id)
+    {
+        try {
+            // Memanggil API Return di Borrow Service
+            $response = \Illuminate\Support\Facades\Http::put("http://127.0.0.1:8003/api/borrows/{$id}/return");
+
+            if ($response->successful()) {
+                return redirect()->route('transaksi')->with('success', 'Buku telah dikembalikan!');
+            }
+            return redirect()->route('transaksi')->with('error', 'Gagal memproses pengembalian.');
+        } catch (\Exception $e) {
+            return redirect()->route('transaksi')->with('error', 'Koneksi ke Service terputus.');
+        }
+    }
 }
