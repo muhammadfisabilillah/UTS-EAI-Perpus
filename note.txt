@@ -1,0 +1,15 @@
+Anggota Kelompok:
+- Mikhael Jeremiah Marjorie Tampa (102062400021)
+- Muhammad Fisabilillah (102062400106)
+- Nabilla Hannah Wardani (102062400056)
+- Shinta Devi Arsy Zelika (102062400096)
+
+Link Repository GitHub:
+https://github.com/muhammadfisabilillah/UTS-EAI-Perpus
+
+Link Dokumentasi Postman:
+Book Service: https://documenter.getpostman.com/view/53805948/2sBXqGr2cE
+User Service: https://documenter.getpostman.com/view/51100448/2sBXqGr2cB
+Borrow Service: https://documenter.getpostman.com/view/52008294/2sBXqJK198
+
+Link Video Demonstrasi:
