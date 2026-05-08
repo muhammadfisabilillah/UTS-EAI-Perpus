@@ -13,3 +13,4 @@ User Service: https://documenter.getpostman.com/view/51100448/2sBXqGr2cB
 Borrow Service: https://documenter.getpostman.com/view/52008294/2sBXqJK198
 
 Link Video Demonstrasi:
+https://drive.google.com/file/d/1s3-kCGfhvk3LOPlyN7BHWE-yqszt4szB/view?usp=sharing
