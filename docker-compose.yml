@@ -1,0 +1,52 @@
+version: "3.8"
+
+services:
+  # Aplikasi Laravel
+  app:
+    build:
+      context: ./borrow-service
+      dockerfile: Dockerfile
+    image: borrow-service-app
+    container_name: borrow-app
+    restart: unless-stopped
+    working_dir: /var/www
+    volumes:
+      - ./borrow-service:/var/www
+    networks:
+      - perpus-network
+    depends_on:
+      - db
+      - redis
+
+  # Database MySQL
+  db:
+    image: mysql:8.0
+    container_name: borrow-db
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: perpus_db
+      MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
+    ports:
+      - "3306:3306"
+    volumes:
+      - dbdata:/var/lib/mysql
+    networks:
+      - perpus-network
+
+  # Redis untuk Komunikasi Asinkron
+  redis:
+    image: redis:alpine
+    container_name: borrow-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    networks:
+      - perpus-network
+
+networks:
+  perpus-network:
+    driver: bridge
+
+volumes:
+  dbdata:
+    driver: local
