@@ -14,11 +14,11 @@ class DashboardController extends Controller
     public function index()
     {
         // Ambil data buku
-        $responseBooks = Http::get('http://127.0.0.1:8001/api/books');
+        $responseBooks = Http::get('http://book-service:8001/api/books');
         $books = $responseBooks->json();
 
         // Ambil data user
-        $responseUsers = Http::get('http://127.0.0.1:8002/api/users');
+        $responseUsers = Http::get('http://user-service:8002/api/users');
         
         // Pastikan kita ambil 'data'-nya saja jika API temanmu membungkusnya dalam folder 'data'
         $userData = $responseUsers->json();
@@ -36,7 +36,7 @@ class DashboardController extends Controller
     {
         try {
             // Ambil data dari User Service (8002) lewat jalur GET /users
-            $response = Http::get('http://127.0.0.1:8002/api/users');
+            $response = Http::get('http://user-service:8002/api/users');
 
             if ($response->successful()) {
                 $userData = $response->json();
@@ -58,7 +58,7 @@ class DashboardController extends Controller
     public function transaksi()
     {
         try {
-            $response = Http::get('http://127.0.0.1:8003/api/borrows/active');
+            $response = Http::get('http://borrow-service:8000/api/borrows/active');
 
             if ($response->successful()) {
                 $transactions = $response->json()['data'];
@@ -83,9 +83,9 @@ class DashboardController extends Controller
         ]);
 
         try {
-            // UI menyerahkan urusan peminjaman sepenuhnya ke Borrow Service (Port 8003)
+            // UI menyerahkan urusan peminjaman sepenuhnya ke Borrow Service (Port 8000)
             // Borrow Service-lah yang nanti akan mengecek User Service dan memotong stok di Book Service
-            $response = Http::post('http://127.0.0.1:8003/api/borrows', [
+            $response = Http::post('http://borrow-service:8000/api/borrows', [
                 'user_id' => $request->user_id,
                 'book_id' => $id
             ]);
@@ -106,13 +106,13 @@ class DashboardController extends Controller
     public function returnBook(Request $request, $id)
     {
         // 1. Update Borrow Service (Status & Tanggal Kembali)
-        $borrowRes = Http::put("http://127.0.0.1:8003/api/borrows/{$id}", [
+        $borrowRes = Http::put("http://borrow-service:8000/api/borrows/{$id}", [
             'status' => 'returned',
             'return_date' => now()->toDateString() // Mengirim tanggal hari ini (YYYY-MM-DD)
         ]);
 
         // 2. Update Book Service (Available: 1)
-        $bookRes = Http::put("http://127.0.0.1:8001/api/books/{$request->book_id}", [
+        $bookRes = Http::put("http://book-service:8001/api/books/{$request->book_id}", [
             'is_available' => 1
         ]);
 

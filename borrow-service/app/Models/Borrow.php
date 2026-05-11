@@ -27,7 +27,7 @@ class Borrow extends Model
     public function getBookData()
     {
         try {
-            $response = Http::get("http://127.0.0.1:8001/api/books/{$this->book_id}");
+            $response = Http::get("http://book-service:8001/api/books/{$this->book_id}");
             return $response->successful() ? $response->json() : null;
         } catch (\Exception $e) {
             return null;
@@ -38,7 +38,7 @@ class Borrow extends Model
     public function getUserData()
     {
         try {
-            $response = Http::get("http://127.0.0.1:8002/api/users/{$this->user_id}");
+            $response = Http::get("http://user-service:8002/api/users/{$this->user_id}");
             return $response->successful() ? $response->json() : null;
         } catch (\Exception $e) {
             return null;

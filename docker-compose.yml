@@ -1,27 +1,121 @@
 version: "3.8"
 
 services:
-  # Aplikasi Laravel
-  app:
+  # Aplikasi Laravel (Borrow Service)
+  borrow-service:
     build:
       context: ./borrow-service
       dockerfile: Dockerfile
     image: borrow-service-app
     container_name: borrow-app
     restart: unless-stopped
+    ports:
+      - "8000:8000"
     working_dir: /var/www
     volumes:
       - ./borrow-service:/var/www
+      - /var/www/vendor
     networks:
       - perpus-network
     depends_on:
       - db
       - redis
 
+  # Aplikasi Laravel (Book Service)
+  book-service:
+    build:
+      context: ./book-service
+      dockerfile: Dockerfile
+    image: book-service-app
+    container_name: book-app
+    restart: unless-stopped
+    ports:
+      - "8001:8001"
+    working_dir: /var/www
+    volumes:
+      - ./book-service:/var/www
+      - /var/www/vendor
+    networks:
+      - perpus-network
+    depends_on:
+      - db
+      - redis
+    environment:
+      - APP_KEY=base64:xL99BgAvANPhQz4WRkme4xy8lPaH1i3FAs0q9VOdbkk=
+      - DB_CONNECTION=mysql
+      - DB_HOST=db
+      - DB_PORT=3306
+      - DB_DATABASE=perpus_db
+      - DB_USERNAME=root
+      - DB_PASSWORD=
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+
+  # Aplikasi Laravel (User Service)
+  user-service:
+    build:
+      context: ./user-service
+      dockerfile: Dockerfile
+    image: user-service-app
+    container_name: user-app
+    restart: unless-stopped
+    ports:
+      - "8002:8002"
+    working_dir: /var/www
+    volumes:
+      - ./user-service:/var/www
+      - /var/www/vendor
+    networks:
+      - perpus-network
+    depends_on:
+      - db
+      - redis
+    environment:
+      - APP_KEY=base64:xL99BgAvANPhQz4WRkme4xy8lPaH1i3FAs0q9VOdbkk=
+      - DB_CONNECTION=mysql
+      - DB_HOST=db
+      - DB_PORT=3306
+      - DB_DATABASE=perpus_db
+      - DB_USERNAME=root
+      - DB_PASSWORD=
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+
+  # Aplikasi Laravel (Frontend UI)
+  frontend-ui:
+    build:
+      context: ./frontend-ui
+      dockerfile: Dockerfile
+    image: frontend-ui-app
+    container_name: frontend-app
+    restart: unless-stopped
+    ports:
+      - "8003:8003"
+    working_dir: /var/www
+    volumes:
+      - ./frontend-ui:/var/www
+      - /var/www/vendor
+      - /var/www/node_modules
+    networks:
+      - perpus-network
+    depends_on:
+      - db
+      - redis
+    environment:
+      - APP_KEY=base64:xL99BgAvANPhQz4WRkme4xy8lPaH1i3FAs0q9VOdbkk=
+      - DB_CONNECTION=mysql
+      - DB_HOST=db
+      - DB_PORT=3306
+      - DB_DATABASE=perpus_db
+      - DB_USERNAME=root
+      - DB_PASSWORD=
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+
   # Database MySQL
   db:
     image: mysql:8.0
-    container_name: borrow-db
+    container_name: perpus-db
     restart: unless-stopped
     environment:
       MYSQL_DATABASE: perpus_db
@@ -33,10 +127,10 @@ services:
     networks:
       - perpus-network
 
-  # Redis untuk Komunikasi Asinkron
+  # Redis untuk Komunikasi Asinkron (Message Broker)
   redis:
     image: redis:alpine
-    container_name: borrow-redis
+    container_name: perpus-redis
     restart: unless-stopped
     ports:
       - "6379:6379"

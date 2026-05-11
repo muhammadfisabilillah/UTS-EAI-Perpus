@@ -29,9 +29,9 @@ Route::post('/borrows', function (Request $request) {
     ]);
 
     // INTEGRASI EAI: Cek keberadaan Buku di BookService (Port 8001)
-    $bookResponse = Http::get("http://127.0.0.1:8001/api/books/{$request->book_id}");
+    $bookResponse = Http::get("http://book-service:8001/api/books/{$request->book_id}");
     // INTEGRASI EAI: Cek keberadaan User di UserService (Port 8002)
-    $userResponse = Http::get("http://127.0.0.1:8002/api/users/{$request->user_id}");
+    $userResponse = Http::get("http://user-service:8002/api/users/{$request->user_id}");
 
     // Logika Pengecekan: Jika kedua service memberikan respon sukses (200 OK)
     if ($userResponse->successful() && $bookResponse->successful()) {
@@ -46,7 +46,7 @@ Route::post('/borrows', function (Request $request) {
         ]);
         
         // Update status buku di Book Service menjadi 0 (tidak tersedia)
-        Http::put("http://127.0.0.1:8001/api/books/{$request->book_id}", [
+        Http::put("http://book-service:8001/api/books/{$request->book_id}", [
             'is_available' => 0
         ]);
 
